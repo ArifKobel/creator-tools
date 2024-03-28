@@ -4,28 +4,28 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ArifKobel/creator-tools/services"
+	"github.com/ArifKobel/creator-tools/handlers"
+	"github.com/ArifKobel/creator-tools/services/database"
+	"github.com/ArifKobel/creator-tools/services/database/schemas"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	godotenv.Load()
-	inputFile := "input.mp4"
-	taskId, err := services.RandStringRunes(20)
+	app := fiber.New(fiber.Config{
+		BodyLimit: 1024 * 1024 * 1024,
+	})
+	db, err := database.Connect()
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 	}
-	// create a folder for the task
-	err = os.Mkdir("tasks/"+taskId, 0755)
-	if err != nil {
-		fmt.Println(err)
-	}
-	services.ConvertToWAV(inputFile, "tasks/"+taskId+"/input.wav")
-	subtitles, err := services.GenerateSubTitles("tasks/" + taskId + "/input.wav")
-	if err != nil {
-		fmt.Println(err)
-	}
-	services.RemoveFile("tasks/" + taskId + "/input.wav")
-	services.AddSubtitlesToVideo(inputFile, subtitles, "tasks/"+taskId+"/output.mp4", taskId)
-
+	db.AutoMigrate(&schemas.User{}, &schemas.Video{})
+	app.Use(cors.New())
+	authRoutes := app.Group("/auth")
+	authRoutes.Post("/send-otp", handlers.SendOTP())
+	authRoutes.Post("/verify-otp", handlers.VerifyOTP())
+	app.Listen("127.0.0.1:3000")
 }
