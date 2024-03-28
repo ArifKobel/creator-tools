@@ -27,5 +27,9 @@ func main() {
 	authRoutes := app.Group("/auth")
 	authRoutes.Post("/send-otp", handlers.SendOTP())
 	authRoutes.Post("/verify-otp", handlers.VerifyOTP())
-	app.Listen("127.0.0.1:3000")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+	app.Listen("0.0.0.0:" + port)
 }
