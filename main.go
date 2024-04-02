@@ -35,6 +35,7 @@ func main() {
 	videoRoutes.Get("/get-video-thumbnail/:id", handlers.GetVideoThumbnail())
 	videoRoutes.Post("/add-export-url/:id", handlers.AddExportURL())
 	videoRoutes.Delete("/delete-video/:id", handlers.DeleteVideo())
+	fmt.Println("Server is running on port 8080")
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
