@@ -1,7 +1,6 @@
 package services
 
 import (
-	"os"
 	"os/exec"
 )
 
@@ -12,7 +11,7 @@ func Ffmpeg(args ...string) error {
 	args = append(args, "-preset", "ultrafast")
 	// Use hardware acceleration if available
 	args = append(args, "-hwaccel", "auto")
-	cmd := exec.Command(os.Getenv("FFMPEG_PATH"), args...)
+	cmd := exec.Command("ffmpeg", args...)
 	if err := cmd.Run(); err != nil {
 		return err
 	}
