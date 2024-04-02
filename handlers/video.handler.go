@@ -256,6 +256,7 @@ func GetVideoThumbnail() fiber.Handler {
 		}
 		var video schemas.Video
 		db.Where("id = ?", videoID).First(&video)
+		fmt.Println(video.ThumbnailPath)
 		return c.SendFile(video.ThumbnailPath)
 	}
 }
