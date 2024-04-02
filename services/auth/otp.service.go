@@ -2,7 +2,6 @@ package auth_service
 
 import (
 	"crypto/rand"
-	"fmt"
 	"net/smtp"
 	"os"
 
@@ -23,14 +22,9 @@ func SendOtp(email string, otp string) error {
 
 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{email}, message)
 	if err != nil {
-		fmt.Println(from)
-		fmt.Println(password)
-		fmt.Println(smtpHost)
-		fmt.Println(smtpPort)
 		return err
 	}
 
-	fmt.Println("Email Sent!")
 	return nil
 }
 

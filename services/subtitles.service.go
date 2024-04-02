@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"sync"
+	"time"
 
 	prerecorded "github.com/deepgram/deepgram-go-sdk/pkg/api/prerecorded/v1"
 	interfaces "github.com/deepgram/deepgram-go-sdk/pkg/client/interfaces"
@@ -73,15 +76,26 @@ type Sentence struct {
 	End   float64 `json:"end"`
 }
 
-func GenerateSubTitles(audioFilePath string) ([]Word, error) {
-	client.InitWithDefault()
+type SubitleGroup struct {
+	Start     float64 `json:"start"`
+	End       float64 `json:"end"`
+	Length    int     `json:"length"`
+	Subtitles []Word  `json:"subtitles"`
+}
+
+var once sync.Once
+
+func GenerateSubTitles(audioFilePath string, language string) ([]SubitleGroup, error) {
+	once.Do(func() {
+		client.InitWithDefault()
+	})
 
 	ctx := context.Background()
 
 	options := interfaces.PreRecordedTranscriptionOptions{
 		Model:       "nova-2-general",
 		SmartFormat: true,
-		Language:    "de",
+		Language:    language,
 	}
 
 	c := client.NewWithDefaults()
@@ -90,25 +104,61 @@ func GenerateSubTitles(audioFilePath string) ([]Word, error) {
 	res, err := dg.FromFile(ctx, audioFilePath, options)
 	if err != nil {
 		fmt.Println("Error: ", err)
-		return []Word{}, err
+		return []SubitleGroup{}, err
 	}
 
 	data, err := json.Marshal(res)
 	if err != nil {
 		fmt.Println("Error: ", err)
-		return []Word{}, err
+		return []SubitleGroup{}, err
 	}
 	var response Response
 	err = json.Unmarshal(data, &response)
 	if err != nil {
 		fmt.Println("Error: ", err)
-		return []Word{}, err
+		return []SubitleGroup{}, err
 	}
-	var words []Word
+	var subtitles []SubitleGroup
+	var currentSubtitleGroup SubitleGroup
 	for _, channel := range response.Results.Channels {
 		for _, alternative := range channel.Alternatives {
-			words = append(words, alternative.Words...)
+			for index, word := range alternative.Words {
+				if index == 0 {
+					currentSubtitleGroup = SubitleGroup{
+						Start:     word.Start,
+						End:       word.End,
+						Length:    len(word.Word),
+						Subtitles: []Word{word},
+					}
+				} else {
+					lastSubtitle := currentSubtitleGroup.Subtitles[len(currentSubtitleGroup.Subtitles)-1]
+					if currentSubtitleGroup.Length+len(word.Word) > 40 ||
+						strings.Contains(lastSubtitle.PunctuatedWord, ".") ||
+						strings.Contains(lastSubtitle.PunctuatedWord, "?") ||
+						strings.Contains(lastSubtitle.PunctuatedWord, "!") ||
+						strings.Contains(lastSubtitle.PunctuatedWord, ",") ||
+						len(currentSubtitleGroup.Subtitles) >= 4 ||
+						word.Start-currentSubtitleGroup.End > 1.5 {
+						subtitles = append(subtitles, currentSubtitleGroup)
+						currentSubtitleGroup = SubitleGroup{
+							Start:     word.Start,
+							End:       word.End,
+							Length:    len(word.Word),
+							Subtitles: []Word{word},
+						}
+						continue
+					} else {
+						currentSubtitleGroup.End = word.End
+						currentSubtitleGroup.Length += len(word.Word)
+						currentSubtitleGroup.Subtitles = append(currentSubtitleGroup.Subtitles, word)
+					}
+				}
+			}
 		}
 	}
-	return words, nil
+	return subtitles, nil
+}
+
+func GetCurrentTime() string {
+	return time.Now().Format("2006-01-02 15:04:05")
 }

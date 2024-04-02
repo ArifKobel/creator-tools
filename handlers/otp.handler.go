@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"fmt"
-
 	auth_service "github.com/ArifKobel/creator-tools/services/auth"
 	"github.com/ArifKobel/creator-tools/services/database"
 	"github.com/ArifKobel/creator-tools/services/database/schemas"
@@ -81,7 +79,6 @@ func VerifyOTP() fiber.Handler {
 				"message": "user not found",
 			})
 		}
-		fmt.Println(user.Otp, body.Code)
 		if user.Otp != body.Code {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "invalid otp",
