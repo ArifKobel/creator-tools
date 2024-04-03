@@ -35,7 +35,19 @@ func main() {
 	videoRoutes.Get("/get-video-thumbnail/:id", handlers.GetVideoThumbnail())
 	videoRoutes.Post("/add-export-url/:id", handlers.AddExportURL())
 	videoRoutes.Delete("/delete-video/:id", handlers.DeleteVideo())
-	fmt.Println("Server is running on port 8080")
+	videoRoutes.Get("/get-all-files", func(c fiber.Ctx) error {
+		files, err := os.ReadDir("./")
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Internal Server Error",
+			})
+		}
+		var filenames []string
+		for _, file := range files {
+			filenames = append(filenames, file.Name())
+		}
+		return c.JSON(filenames)
+	})
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
