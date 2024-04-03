@@ -241,8 +241,8 @@ func GetVideoFile() fiber.Handler {
 		}
 		fmt.Println(videoID)
 		var video schemas.Video
-		db.Where("id = ?", videoID).First(&video)
-		fmt.Println(video.Filepath)
+		err = db.Where("id = ?", videoID).First(&video).Error
+		fmt.Println(err)
 		return c.SendFile(video.Filepath)
 	}
 }
