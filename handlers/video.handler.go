@@ -242,7 +242,16 @@ func GetVideoFile() fiber.Handler {
 		fmt.Println(videoID)
 		var video schemas.Video
 		err = db.Where("id = ?", videoID).First(&video).Error
-		fmt.Println(err)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Internal Server Error",
+			})
+		}
+		if video.Filepath == "" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "File not found",
+			})
+		}
 		return c.SendFile(video.Filepath)
 	}
 }
