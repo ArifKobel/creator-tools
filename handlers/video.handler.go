@@ -239,8 +239,10 @@ func GetVideoFile() fiber.Handler {
 				"message": "Internal Server Error",
 			})
 		}
+		fmt.Println(videoID)
 		var video schemas.Video
 		db.Where("id = ?", videoID).First(&video)
+		fmt.Println(video.Filepath)
 		return c.SendFile(video.Filepath)
 	}
 }
