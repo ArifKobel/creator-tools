@@ -77,6 +77,7 @@ func CreateVideo() fiber.Handler {
 		os.MkdirAll(fmt.Sprintf("uploads/%d/tmp", int(userID)), os.ModePerm)
 		services.ConvertToWAV(inputFilePath, outputFilePath)
 		duration, err := services.Mp4Duration(outputFilePath)
+		os.Remove(outputFilePath)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Internal Server Error",
@@ -221,8 +222,6 @@ func DeleteVideo() fiber.Handler {
 		db.Where("user_id = ? AND id = ?", userID, videoID).First(&video)
 		os.Remove(video.Filepath)
 		os.Remove(video.ThumbnailPath)
-		// remove tmp folder
-		os.RemoveAll(fmt.Sprintf("uploads/%d/tmp", int(userID)))
 		db.Delete(&video)
 		return c.JSON(fiber.Map{
 			"message": "Video deleted successfully",
