@@ -316,3 +316,9 @@ func AddExportURL() fiber.Handler {
 		})
 	}
 }
+
+func GetVideoExport() fiber.Handler {
+	return func(c fiber.Ctx) error {
+		return c.SendFile(fmt.Sprintf("exports/%s.mp4", c.Params("id")))
+	}
+}
