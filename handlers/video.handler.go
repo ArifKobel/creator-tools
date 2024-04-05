@@ -239,7 +239,7 @@ func GetVideoFile() fiber.Handler {
 				"message": "Internal Server Error",
 			})
 		}
-		fmt.Println(videoID)
+		videoID = strings.Replace(videoID, ".mp4", "", -1)
 		var video schemas.Video
 		err = db.Where("id = ?", videoID).First(&video).Error
 		if err != nil {
