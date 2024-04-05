@@ -338,12 +338,13 @@ func GetVideoExport() fiber.Handler {
 				"message": "Internal Server Error",
 			})
 		}
+		var export schemas.Export
+		db.Where("id = ?", c.Params("id")).First(&export)
 		var video schemas.Video
-		db.Where("user_id = ? AND id = ?", userID).First(&video)
-		db.Where("video_id = ?", video.ID).First(&video.Exports)
-		if len(video.Exports) == 0 {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"message": "Export not found",
+		db.Where("id = ?", export.VideoID).First(&video)
+		if video.UserID != uint(userID) {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "Unauthorized",
 			})
 		}
 		return c.SendFile(fmt.Sprintf("exports/%s.mp4", c.Params("id")))
