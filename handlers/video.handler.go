@@ -78,7 +78,6 @@ func CreateVideo() fiber.Handler {
 		os.MkdirAll(fmt.Sprintf("uploads/%d/tmp", int(userID)), os.ModePerm)
 		services.ConvertToWAV(inputFilePath, outputFilePath)
 		duration, err := services.Mp4Duration(outputFilePath)
-		os.Remove(outputFilePath)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Internal Server Error",
@@ -115,6 +114,7 @@ func CreateVideo() fiber.Handler {
 			})
 		}
 		db.Model(&video).Update("subtitles", jsonSubtitles)
+		os.Remove(outputFilePath)
 		return c.JSON(fiber.Map{
 			"message":   "File uploaded successfully",
 			"subtitles": subtitles,
