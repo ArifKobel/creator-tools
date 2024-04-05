@@ -319,6 +319,33 @@ func AddExportURL() fiber.Handler {
 
 func GetVideoExport() fiber.Handler {
 	return func(c fiber.Ctx) error {
+		token := c.Get("Authorization")
+		if token == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "Unauthorized",
+			})
+		}
+		data, err := auth_service.GetDataFromToken(token)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "Unauthorized",
+			})
+		}
+		userID := data["id"].(float64)
+		db, err := database.Connect()
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Internal Server Error",
+			})
+		}
+		var video schemas.Video
+		db.Where("user_id = ? AND id = ?", userID).First(&video)
+		db.Where("video_id = ?", video.ID).First(&video.Exports)
+		if len(video.Exports) == 0 {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "Export not found",
+			})
+		}
 		return c.SendFile(fmt.Sprintf("exports/%s.mp4", c.Params("id")))
 	}
 }
