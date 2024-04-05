@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -13,6 +12,7 @@ import (
 	"github.com/ArifKobel/creator-tools/services/database"
 	"github.com/ArifKobel/creator-tools/services/database/schemas"
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 )
 
 func SplitFilenameAndExtension(filename string) (string, string) {
@@ -68,10 +68,11 @@ func CreateVideo() fiber.Handler {
 				"message": "Internal Server Error",
 			})
 		}
-		filename, extension := SplitFilenameAndExtension(file.Filename)
-		inputFilePath := fmt.Sprintf("uploads/%d/%s-%s.%s", int(userID), leadingText, base64.StdEncoding.EncodeToString([]byte(filename)), extension)
-		outputFilePath := fmt.Sprintf("uploads/%d/tmp/%s-%s.wav", int(userID), leadingText, base64.StdEncoding.EncodeToString([]byte(filename)))
-		thumbnailPath := fmt.Sprintf("uploads/%d/%s-%s.jpg", int(userID), leadingText, base64.StdEncoding.EncodeToString([]byte(filename)))
+		_, extension := SplitFilenameAndExtension(file.Filename)
+		uuid := uuid.New()
+		inputFilePath := fmt.Sprintf("uploads/%d/%s-%s.%s", int(userID), leadingText, uuid, extension)
+		outputFilePath := fmt.Sprintf("uploads/%d/tmp/%s-%s.wav", int(userID), leadingText, uuid)
+		thumbnailPath := fmt.Sprintf("uploads/%d/%s-%s.jpg", int(userID), leadingText, uuid)
 		os.MkdirAll(fmt.Sprintf("uploads/%d", int(userID)), os.ModePerm)
 		c.SaveFile(file, inputFilePath)
 		os.MkdirAll(fmt.Sprintf("uploads/%d/tmp", int(userID)), os.ModePerm)
@@ -90,7 +91,6 @@ func CreateVideo() fiber.Handler {
 				"message": "Internal Server Error",
 			})
 		}
-
 		db.Model(&video).Updates(map[string]interface{}{
 			"duration":       duration,
 			"filepath":       inputFilePath,
