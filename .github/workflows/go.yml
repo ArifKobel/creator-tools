@@ -64,4 +64,6 @@ jobs:
             cd /var/www/vhosts/api.creator-tools.kobel.click
             ls -l
             sudo systemctl reload nginx
-            sudo systemctl status nginx            
+            sudo systemctl status nginx     
+            sudo systemctl stop creator-tools-api
+            sudo systemctl start creator-tools-api
