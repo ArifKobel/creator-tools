@@ -29,7 +29,6 @@ func (j *JSONB) Scan(value interface{}) error {
 type Export struct {
 	ID      uint      `json:"id" gorm:"primaryKey"`
 	VideoID uuid.UUID `json:"video_id"`
-	URL     string    `json:"url"`
 }
 type Video struct {
 	ID            uuid.UUID       `gorm:"type:uuid;default:gen_random_uuid()" json:"id"`

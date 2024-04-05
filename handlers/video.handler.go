@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -102,11 +104,6 @@ func CreateVideo() fiber.Handler {
 				"message": "Internal Server Error",
 			})
 		}
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Internal Server Error",
-			})
-		}
 		jsonSubtitles, err := json.Marshal(subtitles)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -183,6 +180,11 @@ func GetVideo() fiber.Handler {
 		}
 		videoID := c.Params("id")
 		db, err := database.Connect()
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Internal Server Error",
+			})
+		}
 		var video schemas.Video
 		err = db.Model(&schemas.Video{}).Preload("Exports").Find(&video, "id = ?", videoID).Error
 		if err != nil {
@@ -290,9 +292,25 @@ func AddExportURL() fiber.Handler {
 		url := c.Body()
 		export := schemas.Export{
 			VideoID: video.ID,
-			URL:     string(url),
 		}
+		os.MkdirAll("exports", os.ModePerm)
 		db.Create(&export)
+		file, err := os.Create(fmt.Sprintf("exports/%d.mp4", export.ID))
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Internal Server Error",
+			})
+		}
+		defer file.Close()
+		resp, err := http.Get(string(url))
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Internal Server Error",
+			})
+		}
+		defer resp.Body.Close()
+		io.Copy(file, resp.Body)
+
 		return c.JSON(fiber.Map{
 			"message": "URL added successfully",
 		})

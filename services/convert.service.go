@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func convert(videoPath string, outputPath string, args ...string) {
+func convert(_ string, outputPath string, args ...string) {
 	// check if output file exists
 	if _, err := os.Stat(outputPath); err == nil {
 		// remove output file if exists
