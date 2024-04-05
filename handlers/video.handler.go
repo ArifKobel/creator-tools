@@ -70,7 +70,7 @@ func CreateVideo() fiber.Handler {
 		}
 		filename, extension := SplitFilenameAndExtension(file.Filename)
 		inputFilePath := fmt.Sprintf("uploads/%d/%s-%s.%s", int(userID), leadingText, base64.StdEncoding.EncodeToString([]byte(filename)), extension)
-		outputFilePath := fmt.Sprintf("uploads/%d/tmp/%s-%s.wav", int(userID), leadingText, file.Filename)
+		outputFilePath := fmt.Sprintf("uploads/%d/tmp/%s-%s.wav", int(userID), leadingText, base64.StdEncoding.EncodeToString([]byte(filename)))
 		thumbnailPath := fmt.Sprintf("uploads/%d/%s-%s.jpg", int(userID), leadingText, base64.StdEncoding.EncodeToString([]byte(filename)))
 		os.MkdirAll(fmt.Sprintf("uploads/%d", int(userID)), os.ModePerm)
 		c.SaveFile(file, inputFilePath)
