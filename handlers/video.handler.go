@@ -97,7 +97,7 @@ func CreateVideo() fiber.Handler {
 			"thumbnail_path": thumbnailPath,
 		})
 		language := c.Query("language")
-		subtitles, err := services.GenerateSubTitles(fmt.Sprintf("uploads/%d/tmp/%s-%s.wav", int(userID), leadingText, file.Filename), language)
+		subtitles, err := services.GenerateSubTitles(outputFilePath, language)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Internal Server Error",
