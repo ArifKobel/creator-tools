@@ -100,3 +100,25 @@ func VerifyOTP() fiber.Handler {
 		})
 	}
 }
+
+func VerifyToken() fiber.Handler {
+	return func(c fiber.Ctx) error {
+		token := c.Get("Authorization")
+		if token == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "unauthorized",
+			})
+		}
+		token = token[7:]
+		claims, err := auth_service.GetDataFromToken(token)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "unauthorized",
+			})
+		}
+		return c.JSON(fiber.Map{
+			"message": "success",
+			"claims":  claims,
+		})
+	}
+}

@@ -27,6 +27,7 @@ func main() {
 	authRoutes := app.Group("/auth")
 	authRoutes.Post("/send-otp", handlers.SendOTP())
 	authRoutes.Post("/verify-otp", handlers.VerifyOTP())
+	authRoutes.Post("/verify-token", handlers.VerifyToken())
 	videoRoutes := app.Group("/video")
 	videoRoutes.Post("/create-video", handlers.CreateVideo())
 	videoRoutes.Get("/get-videos", handlers.GetVideos())
